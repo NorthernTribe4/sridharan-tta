@@ -11,8 +11,8 @@ export const scoreSchema = z
     sets: z
       .array(
         z.object({
-          player1_score: z.number().int().min(0).max(30),
-          player2_score: z.number().int().min(0).max(30),
+          player1_score: z.number().int().min(0, "Score must be 0–11").max(11, "Score cannot exceed 11"),
+          player2_score: z.number().int().min(0, "Score must be 0–11").max(11, "Score cannot exceed 11"),
         })
       )
       .min(1, "Enter at least one set"),

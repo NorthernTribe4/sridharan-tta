@@ -67,8 +67,8 @@ export function ReviewsClient({ reviews: initial }: { reviews: Review[] }) {
 
       {pending.length > 0 && (
         <div>
-          <h2 className="font-heading font-bold text-[var(--tta-navy)] text-base mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--tta-yellow)]" />
+          <h2 className="font-heading font-bold text-white text-base mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
             Pending Approval ({pending.length})
           </h2>
           <div className="space-y-3">
@@ -86,8 +86,8 @@ export function ReviewsClient({ reviews: initial }: { reviews: Review[] }) {
 
       {approved.length > 0 && (
         <div>
-          <h2 className="font-heading font-bold text-[var(--tta-navy)] text-base mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
+          <h2 className="font-heading font-bold text-white text-base mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
             Approved ({approved.length})
           </h2>
           <div className="space-y-3">

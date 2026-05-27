@@ -23,7 +23,7 @@ export function AboutSection() {
           {/* Embedded video */}
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border border-[#27272A]">
             <iframe
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              src="https://www.youtube.com/embed/Lel5MnaQ8VQ"
               title="Sridharan TTA — Our story"
               className="absolute inset-0 w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

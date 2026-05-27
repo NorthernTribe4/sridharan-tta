@@ -56,7 +56,7 @@ export async function ReviewsSection() {
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="bg-[#141416] border border-[#27272A] rounded-2xl p-6 flex flex-col gap-4 hover:border-[#3F3F46] transition-colors"
+              className="bg-[#141416] border border-[#27272A] rounded-2xl p-6 flex flex-col gap-4 hover:border-[#F97316]/30 lift"
             >
               <StarRating rating={review.rating} />
               <blockquote className="text-sm text-[#A1A1AA] leading-relaxed flex-1">

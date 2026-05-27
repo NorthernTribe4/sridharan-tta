@@ -23,7 +23,9 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
       player1_id: "",
       player2_id: "",
       best_of: 3,
-      sets: [{ player1_score: 0, player2_score: 0 }],
+      // NaN renders as empty in the input but still satisfies the schema's type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sets: [{ player1_score: NaN as any, player2_score: NaN as any }],
     },
   })
 
@@ -34,12 +36,21 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
 
   const watchedValues = form.watch()
 
-  // Restore draft
+  // Restore draft — but only prompt if the draft has real, meaningful data
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(DRAFT_KEY)
       if (!raw) return
       const draft = JSON.parse(raw) as ScoreFormValues
+      const hasPlayers = !!(draft.player1_id || draft.player2_id)
+      const hasScore = (draft.sets ?? []).some(
+        (s) => Number.isFinite(s?.player1_score) || Number.isFinite(s?.player2_score)
+      )
+      if (!hasPlayers && !hasScore) {
+        // Empty / default draft — silently discard, no prompt
+        sessionStorage.removeItem(DRAFT_KEY)
+        return
+      }
       const restore = window.confirm("Restore your previous draft?")
       if (restore) form.reset(draft)
       else sessionStorage.removeItem(DRAFT_KEY)
@@ -92,7 +103,8 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
         player1_id: "",
         player2_id: "",
         best_of: 3,
-        sets: [{ player1_score: 0, player2_score: 0 }],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        sets: [{ player1_score: NaN as any, player2_score: NaN as any }],
       })
     } else {
       toast.error(result.error)
@@ -134,7 +146,8 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
                   onChange={(e) => {
                     field.onChange(Number(e.target.value) as 3 | 5 | 7)
                     // Reset sets when format changes
-                    form.setValue("sets", [{ player1_score: 0, player2_score: 0 }])
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    form.setValue("sets", [{ player1_score: NaN as any, player2_score: NaN as any }])
                   }}
                   className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-[var(--tta-navy)]/20 focus:border-[var(--tta-navy)] transition-colors"
                 >
@@ -220,8 +233,10 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
 
         <div className="space-y-3">
           {fields.map((field, index) => {
-            const p1s = watchedValues.sets[index]?.player1_score ?? 0
-            const p2s = watchedValues.sets[index]?.player2_score ?? 0
+            const p1Raw = watchedValues.sets[index]?.player1_score
+            const p2Raw = watchedValues.sets[index]?.player2_score
+            const p1s = Number.isFinite(p1Raw) ? (p1Raw as number) : 0
+            const p2s = Number.isFinite(p2Raw) ? (p2Raw as number) : 0
             const valid = isValidSetScore(p1s, p2s)
             const setWinner = valid ? (p1s > p2s ? 1 : 2) : null
 
@@ -244,30 +259,78 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
                   {index + 1}
                 </span>
 
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  min={0}
-                  max={30}
-                  disabled={isDisabled}
-                  {...form.register(`sets.${index}.player1_score`, { valueAsNumber: true })}
-                  className={`w-full text-center text-2xl font-bold tabular-nums px-3 py-3 rounded-xl border-2 outline-none transition-colors
-                    ${setWinner === 1 ? "border-[var(--tta-red)] bg-[var(--tta-red)]/5 text-[var(--tta-red)]" : "border-input focus:border-[var(--tta-navy)]"}`}
+                <Controller
+                  control={form.control}
+                  name={`sets.${index}.player1_score`}
+                  render={({ field }) => (
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      min={0}
+                      max={11}
+                      placeholder="0"
+                      disabled={isDisabled}
+                      value={Number.isFinite(field.value) ? field.value : ""}
+                      onChange={(e) => {
+                        const v = e.target.value
+                        if (v === "") { field.onChange(NaN); return }
+                        let n = Math.max(0, Math.min(11, parseInt(v, 10)))
+                        if (Number.isNaN(n)) n = NaN
+                        field.onChange(n)
+                      }}
+                      onBlur={field.onBlur}
+                      onKeyDown={(e) => {
+                        // Allow control keys; block non-digit characters (e, E, +, -, ., etc.)
+                        if (["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter", "Home", "End"].includes(e.key)) return
+                        if (!/^[0-9]$/.test(e.key)) e.preventDefault()
+                      }}
+                      onPaste={(e) => {
+                        const txt = e.clipboardData.getData("text")
+                        if (!/^\d+$/.test(txt)) e.preventDefault()
+                      }}
+                      className={`w-full text-center text-2xl font-bold tabular-nums px-3 py-3 rounded-xl border-2 outline-none transition-colors text-zinc-900 placeholder-zinc-300
+                        ${setWinner === 1 ? "border-[#F97316] bg-[#F97316]/10" : "border-zinc-300 focus:border-[var(--tta-navy)]"}`}
+                    />
+                  )}
                 />
 
                 <span className="text-center text-muted-foreground font-bold">–</span>
 
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  min={0}
-                  max={30}
-                  disabled={isDisabled}
-                  {...form.register(`sets.${index}.player2_score`, { valueAsNumber: true })}
-                  className={`w-full text-center text-2xl font-bold tabular-nums px-3 py-3 rounded-xl border-2 outline-none transition-colors
-                    ${setWinner === 2 ? "border-[var(--tta-red)] bg-[var(--tta-red)]/5 text-[var(--tta-red)]" : "border-input focus:border-[var(--tta-navy)]"}`}
+                <Controller
+                  control={form.control}
+                  name={`sets.${index}.player2_score`}
+                  render={({ field }) => (
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      min={0}
+                      max={11}
+                      placeholder="0"
+                      disabled={isDisabled}
+                      value={Number.isFinite(field.value) ? field.value : ""}
+                      onChange={(e) => {
+                        const v = e.target.value
+                        if (v === "") { field.onChange(NaN); return }
+                        let n = Math.max(0, Math.min(11, parseInt(v, 10)))
+                        if (Number.isNaN(n)) n = NaN
+                        field.onChange(n)
+                      }}
+                      onBlur={field.onBlur}
+                      onKeyDown={(e) => {
+                        // Allow control keys; block non-digit characters (e, E, +, -, ., etc.)
+                        if (["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter", "Home", "End"].includes(e.key)) return
+                        if (!/^[0-9]$/.test(e.key)) e.preventDefault()
+                      }}
+                      onPaste={(e) => {
+                        const txt = e.clipboardData.getData("text")
+                        if (!/^\d+$/.test(txt)) e.preventDefault()
+                      }}
+                      className={`w-full text-center text-2xl font-bold tabular-nums px-3 py-3 rounded-xl border-2 outline-none transition-colors text-zinc-900 placeholder-zinc-300
+                        ${setWinner === 2 ? "border-[#F97316] bg-[#F97316]/10" : "border-zinc-300 focus:border-[var(--tta-navy)]"}`}
+                    />
+                  )}
                 />
 
                 {fields.length > 1 && !isDisabled ? (
@@ -290,7 +353,8 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
         {canAddSet && (
           <button
             type="button"
-            onClick={() => append({ player1_score: 0, player2_score: 0 })}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onClick={() => append({ player1_score: NaN as any, player2_score: NaN as any })}
             className="flex items-center gap-1.5 text-sm text-[var(--tta-navy)] hover:text-[var(--tta-red)] font-medium transition-colors"
           >
             <Plus size={16} />
@@ -313,14 +377,14 @@ export function ScoreEntryForm({ players }: { players: TeamMember[] }) {
       <div className="sticky bottom-4 z-10">
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting || !matchDecided}
+          disabled={form.formState.isSubmitting}
           className="w-full h-14 rounded-2xl bg-[var(--tta-navy)] hover:bg-[var(--tta-navy)]/90 text-white font-heading font-bold text-base shadow-lg disabled:opacity-50"
         >
-          {form.formState.isSubmitting ? "Saving…" : "Save Match Result"}
+          {form.formState.isSubmitting ? "Saving…" : matchDecided ? `Save Match Result — Winner: ${winnerName}` : "Save Match Result"}
         </Button>
         {!matchDecided && watchedValues.player1_id && watchedValues.player2_id && (
-          <p className="text-center text-xs text-muted-foreground mt-2">
-            Match not yet decided — need {t} sets to win
+          <p className="text-center text-xs text-amber-600 mt-2 font-medium">
+            ⚠ Match not yet decided — need {t} sets to win. The server will reject this if the result isn&apos;t valid.
           </p>
         )}
       </div>

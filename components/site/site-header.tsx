@@ -8,6 +8,7 @@ import { Logo } from "./logo"
 import { cn } from "@/lib/utils"
 
 const ourPeopleLinks = [
+  { href: "/team#founders", label: "Founders" },
   { href: "/team", label: "Coaches & Staff" },
   { href: "/players", label: "Players" },
 ]

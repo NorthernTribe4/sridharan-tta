@@ -47,7 +47,7 @@ export async function LatestNews() {
             <Link
               key={article.id}
               href={`/media/news/${article.slug}`}
-              className="group block bg-[#1C1C20] border border-[#27272A] rounded-2xl overflow-hidden hover:border-[#3F3F46] transition-colors"
+              className="group block bg-[#1C1C20] border border-[#27272A] rounded-2xl overflow-hidden hover:border-[#F97316]/30 lift"
             >
               {article.featured_image && (
                 <div className="relative w-full aspect-video overflow-hidden">

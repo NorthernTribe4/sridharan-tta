@@ -24,7 +24,7 @@ function PlayerCard({ player }: { player: TeamMember }) {
   const initials = player.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2)
 
   return (
-    <div className="snap-start shrink-0 w-56 bg-[#141416] border border-[#27272A] rounded-2xl p-5 flex flex-col gap-4 hover:border-[#3F3F46] transition-colors">
+    <div className="snap-start shrink-0 w-56 bg-[#141416] border border-[#27272A] rounded-2xl p-5 flex flex-col gap-4 hover:border-[#F97316]/30 lift">
       {/* Avatar */}
       <div className="w-16 h-16 rounded-full bg-[#1C1C20] border-2 border-[#27272A] flex items-center justify-center overflow-hidden">
         {player.photo_url ? (

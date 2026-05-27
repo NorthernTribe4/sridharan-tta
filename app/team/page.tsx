@@ -46,13 +46,15 @@ export default async function TeamPage() {
         ) : (
           <>
             {founders.length > 0 && (
-              <TeamSection title="Founder" subtitle="The vision behind the academy" members={founders} />
-            )}
-            {managers.length > 0 && (
-              <TeamSection title="Management" subtitle="Keeping the academy running" members={managers} />
+              <div id="founders" className="scroll-mt-28">
+                <TeamSection title="Founders" subtitle="The vision behind the academy" members={founders} />
+              </div>
             )}
             {coaches.length > 0 && (
               <TeamSection title="Coaches" subtitle="Our certified coaching staff" members={coaches} />
+            )}
+            {managers.length > 0 && (
+              <TeamSection title="Management" subtitle="Keeping the academy running" members={managers} />
             )}
           </>
         )}

@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react"
 import { Trash2, Plus, X, Download } from "lucide-react"
+import { toast } from "sonner"
+import { PhotoUpload } from "@/components/admin/photo-upload"
 import { addMagazine, deleteMagazine } from "./actions"
 import type { Magazine } from "@/lib/types"
 
@@ -14,15 +16,24 @@ export function MagazinesAdminClient({ magazines: initial }: { magazines: Magazi
   const [showForm, setShowForm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [cover, setCover] = useState<string | null>(null)
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+    if (!cover) { setError("Please add a cover image."); return }
     const fd = new FormData(e.currentTarget)
+    fd.set("cover_image", cover)
     startTransition(async () => {
       const result = await addMagazine(fd)
-      if (!result.ok) { setError(result.error ?? "Failed"); return }
+      if (!result.ok) {
+        setError(result.error ?? "Failed")
+        toast.error(`Save failed: ${result.error}`)
+        return
+      }
+      toast.success("Magazine saved")
       setShowForm(false)
+      setCover(null)
       window.location.reload()
     })
   }
@@ -31,7 +42,12 @@ export function MagazinesAdminClient({ magazines: initial }: { magazines: Magazi
     if (!confirm("Delete this magazine?")) return
     startTransition(async () => {
       const result = await deleteMagazine(id)
-      if (result.ok) setMagazines((m) => m.filter((x) => x.id !== id))
+      if (result.ok) {
+        setMagazines((m) => m.filter((x) => x.id !== id))
+        toast.success("Magazine deleted")
+      } else {
+        toast.error(`Delete failed: ${result.error}`)
+      }
     })
   }
 
@@ -51,12 +67,14 @@ export function MagazinesAdminClient({ magazines: initial }: { magazines: Magazi
         <form onSubmit={handleAdd} className="bg-[#141416] border border-[#27272A] rounded-2xl p-6 mb-6 space-y-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-heading font-bold text-white">New Magazine Issue</h3>
-            <button type="button" onClick={() => setShowForm(false)} className="text-[#71717A] hover:text-white"><X size={18} /></button>
+            <button type="button" onClick={() => { setShowForm(false); setCover(null) }} className="text-[#71717A] hover:text-white"><X size={18} /></button>
           </div>
           {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>}
+
+          <PhotoUpload value={cover} onChange={setCover} shape="square" outputSize={1000} />
+
           {[
             { name: "title", label: "Title", placeholder: "e.g. Sridharan TTA Magazine — Issue 3", required: true, type: "text" },
-            { name: "cover_image", label: "Cover Image URL", placeholder: "https://...", required: true, type: "text" },
             { name: "pdf_url", label: "PDF URL", placeholder: "https://...", required: true, type: "text" },
             { name: "issue_date", label: "Issue Date", placeholder: "", required: true, type: "date" },
             { name: "description", label: "Description", placeholder: "Optional summary", required: false, type: "text" },
@@ -80,7 +98,7 @@ export function MagazinesAdminClient({ magazines: initial }: { magazines: Magazi
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {magazines.map((mag) => (
-          <div key={mag.id} className="bg-[#141416] border border-[#27272A] rounded-xl overflow-hidden">
+          <div key={mag.id} className="bg-[#141416] border border-[#27272A] rounded-xl overflow-hidden lift">
             <div className="aspect-[3/4] relative bg-[#1C1C20]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={mag.cover_image} alt={mag.title} className="w-full h-full object-cover" />
@@ -92,11 +110,7 @@ export function MagazinesAdminClient({ magazines: initial }: { magazines: Magazi
                 <a href={mag.pdf_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-[#F97316] hover:text-[#EA580C] transition-colors">
                   <Download size={12} /> PDF
                 </a>
-                <button
-                  onClick={() => handleDelete(mag.id)}
-                  className="text-[#71717A] hover:text-red-400 transition-colors"
-                  aria-label="Delete"
-                >
+                <button onClick={() => handleDelete(mag.id)} className="text-[#71717A] hover:text-red-400 transition-colors" aria-label="Delete">
                   <Trash2 size={14} />
                 </button>
               </div>

@@ -7,6 +7,7 @@ import { FeaturedPlayers } from "@/components/home/featured-players"
 import { LatestNews } from "@/components/home/latest-news"
 import { ReviewsSection } from "@/components/home/reviews-section"
 import { FindUs } from "@/components/home/find-us"
+import { Reveal } from "@/components/site/reveal"
 
 export const metadata: Metadata = {
   title: "Home",
@@ -18,13 +19,13 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <AboutSection />
-      <QuickLinksGrid />
-      <FactsAndFigures />
-      <FeaturedPlayers />
-      <LatestNews />
-      <ReviewsSection />
-      <FindUs />
+      <Reveal><AboutSection /></Reveal>
+      <Reveal><QuickLinksGrid /></Reveal>
+      <Reveal><FactsAndFigures /></Reveal>
+      <Reveal><FeaturedPlayers /></Reveal>
+      <Reveal><LatestNews /></Reveal>
+      <Reveal><ReviewsSection /></Reveal>
+      <Reveal><FindUs /></Reveal>
     </>
   )
 }

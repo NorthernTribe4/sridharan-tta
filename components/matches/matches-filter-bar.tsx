@@ -36,7 +36,7 @@ export function MatchesFilterBar({ players, availableYears }: MatchesFilterBarPr
   const hasFilters = !!(month || year || playerId)
 
   const selectClass =
-    "px-3 py-2 rounded-lg border border-input bg-white text-sm outline-none focus:ring-2 focus:ring-[var(--tta-navy)]/20 focus:border-[var(--tta-navy)] transition-colors"
+    "px-3 py-2 rounded-lg border border-[#27272A] bg-[#1C1C20] text-white text-sm outline-none focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316]/30 transition-colors"
 
   return (
     <div className="flex flex-wrap gap-3 items-center mb-8">
@@ -82,7 +82,7 @@ export function MatchesFilterBar({ players, availableYears }: MatchesFilterBarPr
       {hasFilters && (
         <button
           onClick={clear}
-          className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+          className="text-sm text-[#71717A] hover:text-white underline transition-colors"
         >
           Clear filters
         </button>

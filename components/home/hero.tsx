@@ -8,15 +8,17 @@ import { Play } from "lucide-react"
 export function Hero() {
   return (
     <div className="relative min-h-[90vh] flex items-center overflow-hidden">
-      {/* Background image */}
-      <Image
-        src="https://images.unsplash.com/photo-1534158914592-062992fbe900?w=1920"
-        alt="Table tennis player in action"
-        fill
-        className="object-cover"
-        priority
-        sizes="100vw"
-      />
+      {/* Background image with slow pan */}
+      <div className="absolute inset-0 bg-pan">
+        <Image
+          src="https://images.unsplash.com/photo-1534158914592-062992fbe900?w=1920"
+          alt="Table tennis player in action"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+      </div>
       {/* Gradient overlay */}
       <div
         className="absolute inset-0"
@@ -24,14 +26,16 @@ export function Hero() {
       />
 
       {/* Scroll cue */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-50">
-        <div className="w-px h-10 bg-white animate-pulse" />
-        <span className="text-white text-xs uppercase tracking-widest">Scroll</span>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-60">
+        <div className="w-5 h-8 rounded-full border-2 border-white/60 flex justify-center pt-1.5">
+          <div className="w-1 h-2 rounded-full bg-white/80 animate-bounce" />
+        </div>
+        <span className="text-white text-[10px] uppercase tracking-[0.25em]">Scroll</span>
       </div>
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="max-w-3xl">
+        <div className="max-w-3xl fade-in-up">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#F97316] mb-4">
             Chennai · Since 2010
           </p>
@@ -45,7 +49,7 @@ export function Hero() {
           <div className="flex flex-wrap gap-4 items-center">
             <ContactModal />
             <VideoModal
-              videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              videoUrl="https://www.youtube.com/embed/Lel5MnaQ8VQ"
               trigger={
                 <button className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-white text-black text-sm font-semibold hover:bg-white/90 transition-colors">
                   <span className="w-7 h-7 rounded-full border border-black/20 flex items-center justify-center">

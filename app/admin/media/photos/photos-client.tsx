@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react"
 import { Trash2, Plus, X } from "lucide-react"
+import { toast } from "sonner"
+import { PhotoUpload } from "@/components/admin/photo-upload"
 import { addPhoto, deletePhoto } from "./actions"
 import type { MediaPhoto } from "@/lib/types"
 
@@ -12,16 +14,27 @@ export function PhotosAdminClient({ photos: initial }: { photos: MediaPhoto[] })
   const [showForm, setShowForm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+    if (!photoUrl) {
+      setError("Please add a photo before saving.")
+      return
+    }
     const fd = new FormData(e.currentTarget)
+    fd.set("photo_url", photoUrl)
     startTransition(async () => {
       const result = await addPhoto(fd)
-      if (!result.ok) { setError(result.error ?? "Failed"); return }
+      if (!result.ok) {
+        setError(result.error ?? "Failed")
+        toast.error(`Save failed: ${result.error}`)
+        return
+      }
+      toast.success("Photo added")
       setShowForm(false)
-      // optimistic: re-fetch via router would be cleaner, but for simplicity just reload
+      setPhotoUrl(null)
       window.location.reload()
     })
   }
@@ -30,7 +43,12 @@ export function PhotosAdminClient({ photos: initial }: { photos: MediaPhoto[] })
     if (!confirm("Delete this photo?")) return
     startTransition(async () => {
       const result = await deletePhoto(id)
-      if (result.ok) setPhotos((p) => p.filter((x) => x.id !== id))
+      if (result.ok) {
+        setPhotos((p) => p.filter((x) => x.id !== id))
+        toast.success("Photo deleted")
+      } else {
+        toast.error(`Delete failed: ${result.error}`)
+      }
     })
   }
 
@@ -50,24 +68,20 @@ export function PhotosAdminClient({ photos: initial }: { photos: MediaPhoto[] })
         <form onSubmit={handleAdd} className="bg-[#141416] border border-[#27272A] rounded-2xl p-6 mb-6 space-y-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-heading font-bold text-white">New Photo</h3>
-            <button type="button" onClick={() => setShowForm(false)} className="text-[#71717A] hover:text-white"><X size={18} /></button>
+            <button type="button" onClick={() => { setShowForm(false); setPhotoUrl(null) }} className="text-[#71717A] hover:text-white"><X size={18} /></button>
           </div>
           {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>}
-          {[
-            { name: "title", label: "Title", placeholder: "Photo title", required: true },
-            { name: "photo_url", label: "Photo URL", placeholder: "https://...", required: true },
-            { name: "description", label: "Description", placeholder: "Optional caption", required: false },
-          ].map((f) => (
-            <div key={f.name}>
-              <label className="text-sm font-medium text-white block mb-1">{f.label}</label>
-              <input
-                name={f.name}
-                required={f.required}
-                placeholder={f.placeholder}
-                className="w-full px-3 py-2 rounded-lg border border-[#27272A] bg-[#1C1C20] text-white placeholder-[#52525B] text-sm outline-none focus:border-[#F97316] transition-colors"
-              />
-            </div>
-          ))}
+
+          <PhotoUpload value={photoUrl} onChange={setPhotoUrl} shape="square" outputSize={1200} />
+
+          <div>
+            <label className="text-sm font-medium text-white block mb-1">Title</label>
+            <input name="title" required placeholder="Photo title" className="w-full px-3 py-2 rounded-lg border border-[#27272A] bg-[#1C1C20] text-white placeholder-[#52525B] text-sm outline-none focus:border-[#F97316] transition-colors" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-white block mb-1">Description</label>
+            <input name="description" placeholder="Optional caption" className="w-full px-3 py-2 rounded-lg border border-[#27272A] bg-[#1C1C20] text-white placeholder-[#52525B] text-sm outline-none focus:border-[#F97316] transition-colors" />
+          </div>
           <div>
             <label className="text-sm font-medium text-white block mb-1">Category</label>
             <select name="category" required className="w-full px-3 py-2 rounded-lg border border-[#27272A] bg-[#1C1C20] text-white text-sm outline-none focus:border-[#F97316] transition-colors">
@@ -82,7 +96,7 @@ export function PhotosAdminClient({ photos: initial }: { photos: MediaPhoto[] })
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {photos.map((photo) => (
-          <div key={photo.id} className="group relative bg-[#141416] border border-[#27272A] rounded-xl overflow-hidden">
+          <div key={photo.id} className="group relative bg-[#141416] border border-[#27272A] rounded-xl overflow-hidden lift">
             <div className="aspect-video relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo.photo_url} alt={photo.title} className="w-full h-full object-cover" />
